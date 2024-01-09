@@ -19,14 +19,21 @@ func max(a, b int) int {
 
 func location(fragment Fragment, matchIndex []int) Location {
 	var (
-		prevNewLine int
-		location    Location
-		lineSet     bool
-		_lineNum    int
+		prevNewLine       int
+		location          Location
+		lineSet           bool
+		_lineNum          int
+		_newLineByteIndex int
 	)
 
 	start := matchIndex[0]
 	end := matchIndex[1] - 1
+
+	// If the last character of the fragment is not a newline, then
+	// we should include the last character in the match.
+	if fragment.Raw[end] != '\n' {
+		end = end + 1
+	}
 
 	// default startLineIndex to 0
 	location.startLineIndex = 0
@@ -44,6 +51,7 @@ func location(fragment Fragment, matchIndex []int) Location {
 	for lineNum, pair := range fragment.newlineIndices {
 		_lineNum = lineNum
 		newLineByteIndex := pair[0]
+		_newLineByteIndex = newLineByteIndex
 		if prevNewLine <= start && start < newLineByteIndex {
 			lineSet = true
 			location.startLine = lineNum
@@ -52,13 +60,19 @@ func location(fragment Fragment, matchIndex []int) Location {
 			location.startLineIndex = prevNewLine
 			location.endLineIndex = newLineByteIndex
 		}
-
 		if prevNewLine < end && end <= newLineByteIndex {
 			location.endLine = lineNum
 			location.endColumn = (end - prevNewLine)
 			location.endLineIndex = newLineByteIndex
 		}
 		prevNewLine = pair[0]
+	}
+
+	// If the end of the match is on the last line of the fragment
+	// and the end column has not been set, then set it.
+	if end > _newLineByteIndex && location.endColumn == 0 {
+		location.endColumn = end
+		location.endLine = _lineNum + 1
 	}
 
 	if !lineSet {
@@ -83,5 +97,6 @@ func location(fragment Fragment, matchIndex []int) Location {
 		}
 		location.endLineIndex = end + i
 	}
+
 	return location
 }
