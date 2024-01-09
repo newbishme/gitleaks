@@ -10,6 +10,13 @@ type Location struct {
 	endLineIndex   int
 }
 
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func location(fragment Fragment, matchIndex []int) Location {
 	var (
 		prevNewLine int
@@ -19,7 +26,7 @@ func location(fragment Fragment, matchIndex []int) Location {
 	)
 
 	start := matchIndex[0]
-	end := matchIndex[1]
+	end := matchIndex[1] - 1
 
 	// default startLineIndex to 0
 	location.startLineIndex = 0
@@ -41,10 +48,11 @@ func location(fragment Fragment, matchIndex []int) Location {
 			lineSet = true
 			location.startLine = lineNum
 			location.endLine = lineNum
-			location.startColumn = (start - prevNewLine) + 1 // +1 because counting starts at 1
+			location.startColumn = max(1, (start - prevNewLine))
 			location.startLineIndex = prevNewLine
 			location.endLineIndex = newLineByteIndex
 		}
+
 		if prevNewLine < end && end <= newLineByteIndex {
 			location.endLine = lineNum
 			location.endColumn = (end - prevNewLine)
@@ -57,7 +65,7 @@ func location(fragment Fragment, matchIndex []int) Location {
 		// if lines never get set then that means the secret is most likely
 		// on the last line of the diff output and the diff output does not have
 		// a newline
-		location.startColumn = (start - prevNewLine) + 1 // +1 because counting starts at 1
+		location.startColumn = max(1, (start - prevNewLine))
 		location.endColumn = (end - prevNewLine)
 		location.startLine = _lineNum + 1
 		location.endLine = _lineNum + 1
