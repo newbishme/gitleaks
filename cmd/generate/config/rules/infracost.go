@@ -9,13 +9,12 @@ func InfracostAPIToken() *config.Rule {
 	// define rule
 	r := config.Rule{
 		// Human readable description of the rule
-		Description: "Infracost API Token",
+		Description: "Detected an Infracost API Token, risking unauthorized access to cloud cost estimation tools and financial data.",
 
 		// Unique ID for the rule
 		RuleID: "infracost-api-token",
 
 		// Regex capture group for the actual secret
-		SecretGroup: 1,
 
 		// Regex used for detecting secrets. See regex section below for more details
 		Regex: generateUniqueTokenRegex(`ico-[a-zA-Z0-9]{32}`, true),
